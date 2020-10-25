@@ -1,0 +1,17 @@
+{
+    "name": "中台用語轉換器",
+    "version": "1.0",
+    "description": "翻譯中國用語為台灣用語",
+    "content_scripts": [
+      {
+        "matches": ["*://*/*"],
+        "js": ["main.js"]
+      }
+    ],
+    "background": {
+      "scripts": ["background.js"],
+      "persistent": true
+    },
+    "permissions": ["contextMenus","activeTab", "tabs", "storage"],
+    "manifest_version": 2
+  }
