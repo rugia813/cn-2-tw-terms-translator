@@ -22,37 +22,45 @@ function translate(node) {
     } else {
         const original = node.innerText
         if (!original) return
-        let res = original
+        let res = []
         let skipUntil = 0
 
         forEach(original, (char, i) => {
-            if (!isChineseChar(char) || skipUntil > i) return
+            if (skipUntil > i) return
+            if (!isChineseChar(char)) {
+                skipUntil++
+                return res.push(char)
+            }
 
+            let oMatch = false
             // 詞
             for (const cn in terms) {
                 const tw = terms[cn]
-                let match = true
+                let iMatch = true
                 // 字
                 for (const o in cn) {
                     const cnChar = cn[o];
                     const j = +i + +o
                     if (original[j] !== cnChar) {
-                        match = false
+                        iMatch = false
                         break
                     }
                 }
-                if (match) {
+                if (iMatch) {
+                    oMatch = true
                     translated.add(cn)
-                    // const _tw = `${tw}(${cn})`
-                    // res = res.replaceAll(cn, _tw)
-                    res = res.replaceAll(cn, tw)
-                    skipUntil += Math.min(tw.length, cn.length)
-                    // skipUntil += tw.length + cn.length + 2
+                    res.push(tw)
+                    skipUntil += tw.length
+                    break
                 }
             }
+            if (!oMatch) {
+                res.push(char)
+            }
+            if (skipUntil < +i + 1) skipUntil = +i + 1
         })
 
-        node.innerText = res
+        node.innerText = res.join('')
     }
 }
 
