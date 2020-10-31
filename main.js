@@ -16,7 +16,6 @@ const terms = {
     連機窗體: '線上表單',
     數字: '數位',
     移動: '行動',
-    餅圖: '圓餅圖',
     指針: '指標',
     窗口: '視窗',
     智能手機: '智慧型手機',
@@ -42,8 +41,6 @@ const terms = {
     鼠標: '滑鼠',
     打印機: '印表機',
     激光: '雷射',
-    屏幕: '螢幕',
-    智能手機: '智慧型手機',
     攝像頭: '網路攝影機',
     U盤: '隨身碟',
     知識產權: '智慧財產權',
@@ -70,8 +67,8 @@ const terms = {
     重啟: '重開',
     個人形象: '個人造型',
     聯繫人: '聯絡人',
+    自帶: '內建',
 }
-
 /**
  * 
  * @param  {HTMLElement} node 
@@ -105,10 +102,11 @@ function translate(node) {
                     }
                 }
                 if (match) {
-                    // const _tw = `<span style="color:red;">${tw}</span>`
+                    // const _tw = `${tw}(${cn})`
                     // res = res.replaceAll(cn, _tw)
                     res = res.replaceAll(cn, tw)
-                    skipUntil += Math.min(tw.length, cn.length) // + 32
+                    skipUntil += Math.min(tw.length, cn.length)
+                    // skipUntil += tw.length + cn.length + 2
                 }
             }
         })
@@ -130,6 +128,13 @@ function forEach(collection, cb) {
     }
 }
 
+function callTranslate() {
+    const st = performance.now()
+    translate(document.body)
+    const dur = performance.now() - st
+    console.log('translate done in ' + (dur / 1000).toFixed(4) + 's')
+}
+
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request.message == 'ShowError') {
         ShowError();
@@ -145,9 +150,15 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 
 console.log('loaded');
-document.body.onload = function () {
-    const st = performance.now()
-    translate(document.body)
-    const dur = performance.now() - st
-    console.log('translate done in ' + (dur / 1000).toFixed(4) + 's')
-}
+document.body.onload = callTranslate
+document.addEventListener('DOMSubtreeModified', function (e) {
+    if(e.target.tagName === 'HTML') {
+        if(e.target.className.match('translated-ltr')) {
+            console.log('ttt');
+            // page has been translated
+            setTimeout(callTranslate, 1000);
+        } else {
+            // page has been translated and translation was canceled
+        }
+   }
+}, true);
