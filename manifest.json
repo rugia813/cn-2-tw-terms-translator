@@ -5,13 +5,17 @@
     "content_scripts": [
       {
         "matches": ["*://*/*"],
-        "js": ["main.js"]
+        "js": [
+          "patch-worker.js",
+          "main.js"
+        ]
       }
     ],
     "background": {
       "scripts": ["background.js"],
       "persistent": true
     },
-    "permissions": ["contextMenus","activeTab", "tabs", "storage"],
+    "web_accessible_resources": ["worker.js"],
+    "permissions": ["contextMenus","activeTab", "tabs", "storage", "webNavigation"],
     "manifest_version": 2
   }

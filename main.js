@@ -7,7 +7,21 @@ const terms = {
     自带: '内建', 计算机: '电脑', 质量: '品质',
 }
 
-let translated = new Set()
+const nodeList = []
+const myWorker = new Worker(chrome.runtime.getURL('worker.js'));
+
+myWorker.onmessage = function(e) {
+    // console.log('Message received from worker', e.data);
+    const [text, idx] = e.data
+    nodeList[idx].innerText = text
+    nodeList[idx] = null
+};
+
+function send(node) {
+    nodeList.push(node)
+    const idx = nodeList.length - 1
+    myWorker.postMessage([node.innerText, idx]);
+}
 
 /**
  * 翻譯，會先爬到最底層的DOM，再翻譯該DOM的文字
@@ -20,54 +34,7 @@ function translate(node) {
     } else if (node.root) {
         forEach(node.root.children, node => translate(node))
     } else {
-        const original = node.innerText
-        if (!original) return
-        let res = []
-        let skipUntil = 0
-
-        forEach(original, (char, i) => {
-            if (skipUntil > i) return
-            if (!isChineseChar(char)) {
-                skipUntil++
-                return res.push(char)
-            }
-
-            let oMatch = false
-            // 詞
-            for (const cn in terms) {
-                const tw = terms[cn]
-                let iMatch = true
-                // 字
-                for (const o in cn) {
-                    const cnChar = cn[o];
-                    const j = +i + +o
-                    if (original[j] !== cnChar) {
-                        iMatch = false
-                        break
-                    }
-                }
-                if (iMatch) {
-                    oMatch = true
-                    translated.add(cn)
-                    res.push(tw)
-                    skipUntil += Math.max(tw.length, cn.length)
-                    // 台用語較長時，把會被蓋掉的字先加上。例: 源碼123 => 原始碼23
-                    if (tw.length > cn.length) {
-                        for (let c = 0; c < tw.length - cn.length; c++) {
-                            const char = original[+i + cn.length + c];
-                            res.push(char)
-                        }
-                    }
-                    break
-                }
-            }
-            if (!oMatch) {
-                res.push(char)
-            }
-            if (skipUntil < +i + 1) skipUntil = +i + 1
-        })
-
-        node.innerText = res.join('')
+        send(node)
     }
 }
 
@@ -85,12 +52,13 @@ function forEach(collection, cb) {
 }
 
 function callTranslate() {
-    translated.clear()
-    const st = performance.now()
+    console.log('start translating');
+    // translated.clear()
+    // const st = performance.now()
     translate(document.body)
-    const dur = performance.now() - st
-    console.log('translate done in ' + (dur / 1000).toFixed(4) + 's')
-    console.log(Array.from(translated.values()).join(','));
+    // const dur = performance.now() - st
+    // console.log('translate done in ' + (dur / 1000).toFixed(4) + 's')
+    // console.log(Array.from(translated.values()).join(','));
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
@@ -108,14 +76,26 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 
 document.body.onload = callTranslate
+
+let timeoutId
 // google翻譯時
 document.addEventListener('DOMSubtreeModified', function (e) {
-    if(e.target.tagName === 'HTML') {
-        if(e.target.className.match('translated-ltr')) {
+    if (e.target.tagName === 'HTML') {
+        if (e.target.className.match('translated-ltr')) {
             // page has been translated
+            console.log('google translated');
             setTimeout(callTranslate, 1000);
         } else {
             // page has been translated and translation was canceled
+            // console.log('google translate cancelled');
+            // setTimeout(callTranslate, 1000);
         }
+   }
+   if (e.target.tagName === 'BODY') {
+       clearTimeout(timeoutId)
+       timeoutId = setTimeout(() => {
+        callTranslate()
+        console.log('more google translation');
+       }, 2000);
    }
 }, true);
