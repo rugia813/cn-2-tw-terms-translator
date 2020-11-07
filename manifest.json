@@ -16,6 +16,6 @@
       "persistent": true
     },
     "web_accessible_resources": ["worker.js"],
-    "permissions": ["contextMenus","activeTab", "tabs", "storage", "webNavigation"],
+    "permissions": ["contextMenus","activeTab", "tabs"],
     "manifest_version": 2
   }

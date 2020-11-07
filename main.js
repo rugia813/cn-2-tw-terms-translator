@@ -62,16 +62,9 @@ function callTranslate() {
 }
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.message == 'ShowError') {
-        ShowError();
-    } else if (request.message == 'FindError') {
-        FindError();
-    } else if (request.message == 'TransWord') {
+    if (request.message == 'translate') {
         callTranslate()
-    } else if(request.message =="findAndShowError"){
-        findAndShowError();
     }
-    sendResponse({ status: "running" });
     return true;
 });
 
