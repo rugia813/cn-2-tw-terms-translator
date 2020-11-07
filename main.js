@@ -57,7 +57,7 @@ function callTranslate() {
     // const st = performance.now()
     clearTimeout(timeoutIdMain)
     timeoutIdMain = setTimeout(() => {
-        console.log('start translating');
+        // console.log('start translating');
         translate(document.body)
     }, 1000);
     // const dur = performance.now() - st
@@ -79,7 +79,7 @@ document.addEventListener('DOMSubtreeModified', function (e) {
     if (e.target.tagName === 'HTML') {
         if (e.target.className.match('translated-ltr')) {
             // page has been translated
-            console.log('google translated');
+            // console.log('google translated');
             setTimeout(callTranslate, 1000);
         } else {
             // page has been translated and translation was canceled
@@ -91,7 +91,7 @@ document.addEventListener('DOMSubtreeModified', function (e) {
        clearTimeout(timeoutIdGoogle)
        timeoutIdGoogle = setTimeout(() => {
         callTranslate()
-        console.log('body modified');
+        // console.log('body modified');
        }, 2000);
    }
 }, true);
