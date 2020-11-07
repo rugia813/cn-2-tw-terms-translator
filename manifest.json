@@ -1,5 +1,5 @@
 {
-    "name": "中台軟工技術用語轉換器",
+    "name": "中台軟工技術用語翻譯",
     "version": "1.0",
     "description": "翻譯中國用語為台灣用語",
     "author": "rugia813",
@@ -11,6 +11,7 @@
     "content_scripts": [
       {
         "matches": ["*://*/*"],
+        "exclude_matches": ["https://www.youtube.com/"],
         "js": [
           "patch-worker.js",
           "main.js"

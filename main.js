@@ -9,6 +9,7 @@ const terms = {
 
 const nodeList = []
 const myWorker = new Worker(chrome.runtime.getURL('worker.js'));
+let timeoutIdMain, timeoutIdGoogle
 
 myWorker.onmessage = function(e) {
     // console.log('Message received from worker', e.data);
@@ -52,10 +53,13 @@ function forEach(collection, cb) {
 }
 
 function callTranslate() {
-    console.log('start translating');
     // translated.clear()
     // const st = performance.now()
-    translate(document.body)
+    clearTimeout(timeoutIdMain)
+    timeoutIdMain = setTimeout(() => {
+        console.log('start translating');
+        translate(document.body)
+    }, 1000);
     // const dur = performance.now() - st
     // console.log('translate done in ' + (dur / 1000).toFixed(4) + 's')
     // console.log(Array.from(translated.values()).join(','));
@@ -70,7 +74,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 document.body.onload = callTranslate
 
-let timeoutId
 // google翻譯時
 document.addEventListener('DOMSubtreeModified', function (e) {
     if (e.target.tagName === 'HTML') {
@@ -85,10 +88,10 @@ document.addEventListener('DOMSubtreeModified', function (e) {
         }
    }
    if (e.target.tagName === 'BODY') {
-       clearTimeout(timeoutId)
-       timeoutId = setTimeout(() => {
+       clearTimeout(timeoutIdGoogle)
+       timeoutIdGoogle = setTimeout(() => {
         callTranslate()
-        console.log('more google translation');
+        console.log('body modified');
        }, 2000);
    }
 }, true);
