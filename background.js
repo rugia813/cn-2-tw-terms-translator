@@ -11,3 +11,10 @@ chrome.runtime.onInstalled.addListener(function() {
         "onclick": translate,
     });
 });
+chrome.tabs.onActivated.addListener(function (tabs) {
+    chrome.pageAction.show(tabs.tabId);
+})
+chrome.pageAction.onClicked.addListener(function(tab) {
+    console.log('tab: ', tab);
+
+})

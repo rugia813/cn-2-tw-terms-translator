@@ -44,7 +44,7 @@ function callTranslate() {
     // const st = performance.now()
     clearTimeout(timeoutIdMain)
     timeoutIdMain = setTimeout(() => {
-        // console.log('start translating');
+        console.log('start translating');
         translate(document.body)
     }, 1000);
     // const dur = performance.now() - st
@@ -60,7 +60,22 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     return true;
 });
 
-document.body.onload = callTranslate
+const url = window.location.host
+chrome.storage.sync.set({[url]: true}, function() {
+    console.log('Value is set to ' + 'value');
+});
+
+chrome.storage.sync.get(url, function(result) {
+    console.log('Value currently is ',  result);
+});
+
+document.body.onload = function() {
+    chrome.storage.sync.get(url, function(result) {
+        if (result[url]) {
+            callTranslate()
+        }
+    });
+}
 
 // google翻譯時
 document.addEventListener('DOMSubtreeModified', function (e) {
