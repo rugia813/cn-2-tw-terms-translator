@@ -17,7 +17,7 @@ function tellWorkerToTranslate(node) {
 
 /**
  * 翻譯，會先爬到最底層的DOM，再翻譯該DOM的文字
- * @param  {HTMLElement} node 
+ * @param  {HTMLElement} node
  * @return {void}
  */
 function translate(node) {
