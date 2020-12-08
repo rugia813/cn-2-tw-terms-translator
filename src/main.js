@@ -5,14 +5,15 @@ let timeoutIdMain, timeoutIdGoogle
 myWorker.onmessage = function(e) {
     // console.log('Message received from worker', e.data);
     const [text, idx] = e.data
-    nodeList[idx].innerText = text
+    if (nodeList[idx].innerText) nodeList[idx].innerText = text
+    else if (nodeList[idx].nodeValue ) nodeList[idx].data = text // text node
     nodeList[idx] = null
 };
 
 function tellWorkerToTranslate(node) {
     nodeList.push(node)
     const idx = nodeList.length - 1
-    myWorker.postMessage([node.innerText, idx]);
+    myWorker.postMessage([node.innerText || node.nodeValue , idx]);
 }
 
 /**
@@ -21,8 +22,8 @@ function tellWorkerToTranslate(node) {
  * @return {void}
  */
 function translate(node) {
-    if (node.children.length) {
-        forEach(node.children, node => translate(node))
+    if (node.childNodes.length) {
+        forEach(node.childNodes, node => translate(node))
     } else if (node.root) {
         forEach(node.root.children, node => translate(node))
     } else {
