@@ -40,7 +40,11 @@ function forEach(collection, cb) {
     }
 }
 
-function callTranslate() {
+async function callTranslate() {
+    const hostname = window.location.hostname
+    const activated = await getSiteStatus(hostname)
+    if (!activated) return
+
     // translated.clear()
     // const st = performance.now()
     clearTimeout(timeoutIdMain)
@@ -53,6 +57,25 @@ function callTranslate() {
     // console.log(Array.from(translated.values()).join(','));
 }
 
+function setSiteStatus(host, bool) {
+    chrome.storage.sync.set({ [host]: bool }, function () {
+        console.log(host, 'is set to ' + bool);
+    });
+}
+
+function getSiteStatus(host) {
+    return new Promise((res, rej) => chrome.storage.sync.get(host, function (result) {
+        console.log(host, 'currently is ', result[host]);
+        res(result[host])
+    }));
+}
+function toggleIcon(bool) {
+    chrome.runtime.sendMessage(null, {
+        type: 'icon',
+        value: bool
+    })
+}
+
 // 從contextMenu點擊翻譯
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (request.message == 'translate') {
@@ -61,41 +84,31 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     return true;
 });
 
-const url = window.location.host
-chrome.storage.sync.set({[url]: true}, function() {
-    console.log('Value is set to ' + 'value');
-});
-
-chrome.storage.sync.get(url, function(result) {
-    console.log('Value currently is ',  result);
-});
-
-document.body.onload = function() {
-    chrome.storage.sync.get(url, function(result) {
-        if (result[url]) {
-            callTranslate()
-        }
-    });
+document.body.onload = async function () {
+    const hostname = window.location.hostname
+    const activated = await getSiteStatus(hostname)
+    toggleIcon(activated)
+    activated && callTranslate()
 }
 
 // google翻譯時
-document.addEventListener('DOMSubtreeModified', function (e) {
-    if (e.target.tagName === 'HTML') {
-        if (e.target.className.match('translated-ltr')) {
-            // page has been translated
-            // console.log('google translated');
-            setTimeout(callTranslate, 1000);
-        } else {
-            // page has been translated and translation was canceled
-            // console.log('google translate cancelled');
-            // setTimeout(callTranslate, 1000);
+const callback = function (mutationsList, observer) {
+    for (const e of mutationsList) {
+        if (e.target.tagName === 'HTML') {
+            if (e.target.className.match('translated-ltr')) {
+                // page has been translated
+                // console.log('google translated');
+                setTimeout(callTranslate, 1000);
+            }
         }
-   }
-   if (e.target.tagName === 'BODY') {
-       clearTimeout(timeoutIdGoogle)
-       timeoutIdGoogle = setTimeout(() => {
-        callTranslate()
-        // console.log('body modified');
-       }, 2000);
-   }
-}, true);
+        if (e.target.tagName === 'BODY') {
+            clearTimeout(timeoutIdGoogle)
+            timeoutIdGoogle = setTimeout(() => {
+                callTranslate()
+                // console.log('body modified');
+            }, 2000);
+        }
+    }
+};
+const observer = new MutationObserver(callback);
+observer.observe(document, { attributes: true, childList: true, subtree: true });

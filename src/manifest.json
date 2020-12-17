@@ -8,13 +8,13 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "page_action": {
+    "browser_action": {
       "default_title": "中台軟工技術用語翻譯",
       "default_icon": "icons/icon-inactive16.png"
     },
     "content_scripts": [
       {
-        "matches": ["http://*/*", "https://*/*"],
+        "matches": ["<all_urls>"],
         "js": [
           "patch-worker.js",
           "main.js"
@@ -26,6 +26,6 @@
       "persistent": true
     },
     "web_accessible_resources": ["worker.js"],
-    "permissions": ["contextMenus", "storage"],
+    "permissions": ["contextMenus", "storage", "tabs"],
     "manifest_version": 2
   }
